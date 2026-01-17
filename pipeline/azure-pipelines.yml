@@ -1,0 +1,55 @@
+trigger:
+- main
+
+variables:
+  vmImageName: 'ubuntu-latest'
+  urlZipCliTool: 'https://github.com/apisec-inc/mcp-audit/archive/refs/tags/v1.0.0.zip'
+  dirMcpAudit: './mcp-audit-1.0.0'
+
+stages:
+- stage: McpScanning
+  displayName: Mcp Scanning stage
+  jobs:
+  - job: McpScanning
+    displayName: Mcp Scanning
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - script: |
+        echo 'Downloading mcp-audit-cli... -- Baixando mcp-audit-cli...'
+        curl -L -o mcp-audit-cli.zip $(urlZipCliTool)
+      displayName: 'Download mcp-audit-cli -- Baixando mcp-audit-cli'
+    - script: |
+        echo 'Unzipping mcp-audit-cli... -- Descompactando mcp-audit-cli...'
+        unzip mcp-audit-cli.zip -d .
+      displayName: 'Decompress mcp-audit-cli -- Descompactar mcp-audit-cli'
+    - script: |
+        cd $(dirMcpAudit)
+        ls -l
+      displayName: 'List mcp-audit-cli files -- Listar arquivos mcp-audit-cli'
+    - script: |
+        echo 'Installing mcp-audit-cli... -- Instalando mcp-audit-cli...'
+        cd $(dirMcpAudit)
+        pip install -e .
+      displayName: 'Install mcp-audit-cli -- Instalar mcp-audit-cli'
+    - script: |
+        mcp-audit --help
+      displayName: 'Test the mcp-audit utility -- Testar o utilitario mcp-audit'
+    - script: |
+        mcp-audit scan --help
+      displayName: 'Display the options for the mcp-audit scan command -- Exibir o opcoes do comando mcp-audit scan'
+    - script: |
+        echo '** Current directory -- Diretorio atual:'
+        pwd
+        echo
+        echo 
+        mcp-audit scan --path . --format markdown --output mcp-analysis.md --verbose --email renatogroff@gmail.com --no-report
+      displayName: 'Execute scan (Markdown) -- Executar scan (Markdown)'
+    - script: |
+        ls -l
+      displayName: 'Display files after analysis -- Exibir arquivos apos analise'
+    - task: PublishMarkdownReports@1
+      inputs:
+        contentPath: '$(Build.SourcesDirectory)'
+        indexFile: 'mcp-analysis.md'
+      displayName: Publication of Markdown report -- Publicacao de relatorio Markdown

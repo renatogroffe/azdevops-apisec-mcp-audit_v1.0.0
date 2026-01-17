@@ -1,0 +1,39 @@
+{
+	"servers": {
+		"microsoft-learn": {
+			"url": "https://learn.microsoft.com/api/mcp",
+			"type": "http"
+		},
+		"github": {
+			"url": "https://api.githubcopilot.com/mcp/",
+			"type": "http",
+			"headers": {
+				"Authorization": "Bearer ${input:github_mcp_pat}"
+			}
+		},
+		"fakedata": {
+			"type": "stdio",
+			"command": "docker",
+			"args": [
+				"run",
+				"-i",
+				"--rm",
+				"renatogroffe/dotnet9-consoleapp-mcp-fakedata"
+			]
+		},
+		"kubernetes": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["mcp-server-kubernetes"],
+			"description": "Kubernetes cluster management and operations"
+		}
+	},
+	"inputs": [
+		{
+			"type": "promptString",
+			"id": "github_mcp_pat",
+			"description": "GitHub Personal Access Token",
+			"password": true
+		}
+	]
+}
